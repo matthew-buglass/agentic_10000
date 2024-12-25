@@ -27,7 +27,16 @@ def print_play_options():
     for i in range(len(plays)):
         print(plays[i], "=", i)
 
-def can_choose(choice: PlayChoices, roll: )
+def print_legal_options():
+    plays = get_play_names()
+    classname = "PlayChoices"
+    print("match choice:")
+    for play in plays:
+        print(f"\tcase {classname}.{play}:")
+        print(f"\t\tpass")
+
 
 if __name__ == "__main__":
     print_play_options()
+    print()
+    print_legal_options()

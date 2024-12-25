@@ -3,6 +3,7 @@ from enum import Enum
 from logging import setLogRecordFactory
 from random import randint as ri
 from typing import List, Tuple, Optional
+from unittest import case
 
 
 class PlayChoices(Enum):
@@ -96,9 +97,73 @@ class TenThousandEngine:
         self.turn_state = TurnState()
 
     def _is_legal_choice(self, choice: PlayChoices) -> bool:
-        if choice == PlayChoices.PASS:
-            return self.turn_state.is_covered
-        return False
+        match choice:
+            case PlayChoices.STOP:
+                return True
+            case PlayChoices.PASS:
+                return self.turn_state.is_covered
+            case PlayChoices.KEEP_DICE_ONE:
+                pass
+            case PlayChoices.KEEP_DICE_TWO:
+                pass
+            case PlayChoices.KEEP_DICE_THREE:
+                pass
+            case PlayChoices.KEEP_DICE_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_THREE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_THREE:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_THREE_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_THREE_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_THREE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_THREE_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_THREE_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_THREE_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_THREE_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_THREE_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_THREE_FOUR:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_THREE_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_THREE_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_TWO_THREE_FOUR_FIVE:
+                pass
+            case PlayChoices.KEEP_DICE_ONE_TWO_THREE_FOUR_FIVE:
+                pass
 
     def _roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
