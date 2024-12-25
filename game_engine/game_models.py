@@ -1,4 +1,6 @@
+from dataclasses import dataclass
 from enum import Enum
+from logging import setLogRecordFactory
 from random import randint as ri
 from typing import List, Tuple, Optional
 
@@ -48,6 +50,33 @@ class GameState:
     def __init__(self):
         pass
 
+@dataclass
+class Roll:
+    die_one: Optional[int] = None
+    die_two: Optional[int] = None
+    die_three: Optional[int] = None
+    die_four: Optional[int] = None
+    die_five: Optional[int] = None
+
+    @classmethod
+    def from_list(cls, data: List[int]) -> "Roll":
+        assert len(data) <= 5, "Maximum of 5 dice allowed."
+        obj = Roll()
+        for i in range(len(data)):
+            match i + 1:
+                case 1:
+                   obj.die_one = data[i]
+                case 2:
+                    obj.die_two = data[i]
+                case 3:
+                    obj.die_three = data[i]
+                case 4:
+                    obj.die_four = data[i]
+                case 5:
+                    obj.die_five = data[i]
+        return obj
+
+
 class TenThousandEngine:
     """
     A Game manager that encodes and coordinates the rules and the playing of the game.
@@ -71,22 +100,9 @@ class TenThousandEngine:
             return self.turn_state.is_covered
         return False
 
-    def _roll(self) -> Tuple[Optional[int], Optional[int], Optional[int], Optional[int], Optional[int]]:
-        match self.num_dice_to_roll:
-            case 1:
-                return ri(1, 6), None, None, None, None
-            case 2:
-                return ri(1, 6), ri(1, 6), None, None, None
-            case 3:
-                return ri(1, 6), ri(1, 6), ri(1, 6), None, None
-            case 4:
-                return ri(1, 6), ri(1, 6), ri(1, 6), ri(1, 6), None
-            case 5:
-                return ri(1, 6), ri(1, 6), ri(1, 6), ri(1, 6), ri(1, 6)
-            case _:
-                return None, None, None, None, None
-
-
+    def _roll(self) -> Roll:
+        rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
+        return Roll.from_list(rolls)
 
     def choose(self, choice: PlayChoices) -> int:
         """
