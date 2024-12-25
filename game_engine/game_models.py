@@ -4,38 +4,39 @@ from typing import List, Tuple, Optional
 
 
 class PlayChoices(Enum):
-    PASS = 0
-    KEEP_DICE_ONE = 1
-    KEEP_DICE_TWO = 2
-    KEEP_DICE_THREE = 3
-    KEEP_DICE_FOUR = 4
-    KEEP_DICE_FIVE = 5
-    KEEP_DICE_ONE_TWO = 6
-    KEEP_DICE_ONE_THREE = 7
-    KEEP_DICE_ONE_FOUR = 8
-    KEEP_DICE_ONE_FIVE = 9
-    KEEP_DICE_TWO_THREE = 10
-    KEEP_DICE_TWO_FOUR = 11
-    KEEP_DICE_TWO_FIVE = 12
-    KEEP_DICE_THREE_FOUR = 13
-    KEEP_DICE_THREE_FIVE = 14
-    KEEP_DICE_FOUR_FIVE = 15
-    KEEP_DICE_ONE_TWO_THREE = 16
-    KEEP_DICE_ONE_TWO_FOUR = 17
-    KEEP_DICE_ONE_TWO_FIVE = 18
-    KEEP_DICE_ONE_THREE_FOUR = 19
-    KEEP_DICE_ONE_THREE_FIVE = 20
-    KEEP_DICE_ONE_FOUR_FIVE = 21
-    KEEP_DICE_TWO_THREE_FOUR = 22
-    KEEP_DICE_TWO_THREE_FIVE = 23
-    KEEP_DICE_TWO_FOUR_FIVE = 24
-    KEEP_DICE_THREE_FOUR_FIVE = 25
-    KEEP_DICE_ONE_TWO_THREE_FOUR = 26
-    KEEP_DICE_ONE_TWO_THREE_FIVE = 27
-    KEEP_DICE_ONE_TWO_FOUR_FIVE = 28
-    KEEP_DICE_ONE_THREE_FOUR_FIVE = 29
-    KEEP_DICE_TWO_THREE_FOUR_FIVE = 30
-    KEEP_DICE_ONE_TWO_THREE_FOUR_FIVE = 31
+    STOP = 0
+    PASS = 1
+    KEEP_DICE_ONE = 2
+    KEEP_DICE_TWO = 3
+    KEEP_DICE_THREE = 4
+    KEEP_DICE_FOUR = 5
+    KEEP_DICE_FIVE = 6
+    KEEP_DICE_ONE_TWO = 7
+    KEEP_DICE_ONE_THREE = 8
+    KEEP_DICE_ONE_FOUR = 9
+    KEEP_DICE_ONE_FIVE = 10
+    KEEP_DICE_TWO_THREE = 11
+    KEEP_DICE_TWO_FOUR = 12
+    KEEP_DICE_TWO_FIVE = 13
+    KEEP_DICE_THREE_FOUR = 14
+    KEEP_DICE_THREE_FIVE = 15
+    KEEP_DICE_FOUR_FIVE = 16
+    KEEP_DICE_ONE_TWO_THREE = 17
+    KEEP_DICE_ONE_TWO_FOUR = 18
+    KEEP_DICE_ONE_TWO_FIVE = 19
+    KEEP_DICE_ONE_THREE_FOUR = 20
+    KEEP_DICE_ONE_THREE_FIVE = 21
+    KEEP_DICE_ONE_FOUR_FIVE = 22
+    KEEP_DICE_TWO_THREE_FOUR = 23
+    KEEP_DICE_TWO_THREE_FIVE = 24
+    KEEP_DICE_TWO_FOUR_FIVE = 25
+    KEEP_DICE_THREE_FOUR_FIVE = 26
+    KEEP_DICE_ONE_TWO_THREE_FOUR = 27
+    KEEP_DICE_ONE_TWO_THREE_FIVE = 28
+    KEEP_DICE_ONE_TWO_FOUR_FIVE = 29
+    KEEP_DICE_ONE_THREE_FOUR_FIVE = 30
+    KEEP_DICE_TWO_THREE_FOUR_FIVE = 31
+    KEEP_DICE_ONE_TWO_THREE_FOUR_FIVE = 32
 
 class TurnState:
     def __init__(self):
@@ -65,7 +66,9 @@ class TenThousandEngine:
         self.num_dice_to_roll = 5
         self.turn_state = TurnState()
 
-    def _is_illegal_choice(self, choice: PlayChoices) -> bool:
+    def _is_legal_choice(self, choice: PlayChoices) -> bool:
+        if choice == PlayChoices.PASS:
+            return self.turn_state.is_covered
         return False
 
     def _roll(self) -> Tuple[Optional[int], Optional[int], Optional[int], Optional[int], Optional[int]]:
