@@ -1,9 +1,6 @@
 from dataclasses import dataclass
-from enum import Enum
-from logging import setLogRecordFactory
 from random import randint as ri
-from typing import List, Tuple, Optional
-from unittest import case
+from typing import List, Optional
 
 
 @dataclass
