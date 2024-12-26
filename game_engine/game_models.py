@@ -1,6 +1,7 @@
+from collections import Counter
 from dataclasses import dataclass
 from random import randint as ri
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 
 @dataclass
@@ -75,8 +76,9 @@ class PlayChoices:
         32: [0, 1, 2, 3, 4],
     }
 
-    def get_indexes_from_play(self, play: int) -> List[int]:
-        return self.play_to_indexes[play]
+    @classmethod
+    def get_indexes_from_play(cls, play: int) -> List[int]:
+        return cls.play_to_indexes[play]
 
 class TurnState:
     def __init__(self):
@@ -139,8 +141,47 @@ class TenThousandEngine:
         self.num_dice_to_roll = 5
         self.turn_state = TurnState()
 
-    def _can_select_dice(self, choice: PlayChoices, roll: Roll) -> bool:
-        pass
+    def _count_score(self, values_counter: Counter[int]) -> Tuple[int, bool]:
+        """
+        Counts the scores associated with the values counter
+        Args:
+            values_counter: a counter mapping the integer face value of the dice to the number
+                of those types of dice that were kept.
+
+        Returns:
+            The score of the kept dice and whether the score is covered.
+        """
+        is_covered = False
+        score = 0
+        for num, count in values_counter.items():
+            if num == 1 and count < 3:
+                is_covered = True
+                score += 100 * count
+            elif num == 5 and count < 3:
+                is_covered = True
+                score += 50 * count
+            else:
+                three_of_a_kind = count // 3 > 0
+                remainder = count % 3
+                temp_score = 0
+                if three_of_a_kind:
+                    if num == 1:
+                        temp_score += 1000
+                    else:
+                        temp_score += num * 100
+                score += temp_score * (remainder + 1)
+
+        return score, is_covered
+
+    def _is_legal_choice(self, choice: int, roll: Roll) -> bool:
+        values = roll.get_value_from_indices(PlayChoices.get_indexes_from_play(choice))
+        val_counter = Counter(values)
+        # All dice have to be a value
+        if val_counter.get(None):
+            return False
+
+
+
 
     def _roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
