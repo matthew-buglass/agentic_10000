@@ -131,6 +131,9 @@ class TenThousandEngine:
     win_con = 10000
     num_dice_total = 5
 
+    # Punishment values
+    illegal_move = -1000
+
     def __init__(self, players: List):
         self.players = players
 
@@ -140,6 +143,7 @@ class TenThousandEngine:
 
         self.num_dice_to_roll = 5
         self.turn_state = TurnState()
+        self.current_roll = None
 
     def _count_score(self, values_counter: Counter[int]) -> Tuple[int, bool]:
         """
@@ -173,21 +177,12 @@ class TenThousandEngine:
 
         return score, is_covered
 
-    def _is_legal_choice(self, choice: int, roll: Roll) -> bool:
-        values = roll.get_value_from_indices(PlayChoices.get_indexes_from_play(choice))
-        val_counter = Counter(values)
-        # All dice have to be a value
-        if val_counter.get(None):
-            return False
-
-
-
-
     def _roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
-        return Roll(rolls)
+        self.rolls = Roll(rolls)
+        return self.rolls
 
-    def choose(self, choice: PlayChoices) -> int:
+    def choose(self, choice: int) -> int:
         """
         Takes a player's choice and either applies it to the game if it is legal and returns 0, or
         returns a punishment value if the move is illegal.
@@ -198,5 +193,19 @@ class TenThousandEngine:
         Returns:
 
         """
-        pass
+        values = self.current_roll.get_value_from_indices(PlayChoices.get_indexes_from_play(choice))
+        val_counter = Counter(values)
+        # All dice have to be a value
+        if val_counter.get(None):
+            return self.illegal_move
+
+        match choice:
+            case PlayChoices.PASS:
+                pass
+            case PlayChoices.STOP:
+                pass
+            case _:
+                score, is_covered = self._count_score(val_counter)
+                self.turn_state.is_covered = is_covered
+                self.turn_state.current_score += score
 
