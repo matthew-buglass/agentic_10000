@@ -31,9 +31,23 @@ def print_legal_options():
     plays = get_play_names()
     classname = "PlayChoices"
     print("match choice:")
+    name_mapping = {
+        "STOP": "True",
+        "PASS": "self.turn_state.is_covered",
+        "ONE": "roll.die_one is not None",
+        "TWO": "roll.die_two is not None",
+        "THREE": "roll.die_three is not None",
+        "FOUR": "roll.die_four is not None",
+        "FIVE": "roll.die_five is not None",
+    }
+
     for play in plays:
         print(f"\tcase {classname}.{play}:")
-        print(f"\t\tpass")
+        print("\t\treturn (")
+        for k, v in name_mapping.items():
+            if k in play:
+                print(f"\t\t\t{v} and")
+        print("\t\t)")
 
 
 if __name__ == "__main__":

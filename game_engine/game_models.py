@@ -96,74 +96,189 @@ class TenThousandEngine:
         self.num_dice_to_roll = 5
         self.turn_state = TurnState()
 
-    def _is_legal_choice(self, choice: PlayChoices) -> bool:
+    def _is_legal_choice(self, choice: PlayChoices, roll: Roll) -> bool:
         match choice:
             case PlayChoices.STOP:
-                return True
+                return (
+                        True
+                )
             case PlayChoices.PASS:
-                return self.turn_state.is_covered
+                return (
+                        self.turn_state.is_covered
+                )
             case PlayChoices.KEEP_DICE_ONE:
-                pass
+                return (
+                        roll.die_one is not None
+                )
             case PlayChoices.KEEP_DICE_TWO:
-                pass
+                return (
+                        roll.die_two is not None
+                )
             case PlayChoices.KEEP_DICE_THREE:
-                pass
+                return (
+                        roll.die_three is not None
+                )
             case PlayChoices.KEEP_DICE_FOUR:
-                pass
+                return (
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_FIVE:
-                pass
+                return (
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_THREE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_three is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_FOUR:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_THREE:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_three is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_FOUR:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_FIVE:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_THREE_FOUR:
-                pass
+                return (
+                        roll.die_three is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_THREE_FIVE:
-                pass
+                return (
+                        roll.die_three is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_THREE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_three is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_FOUR:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_THREE_FOUR:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_three is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_THREE_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_three is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_THREE_FOUR:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_three is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_THREE_FIVE:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_three is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_THREE_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_three is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_THREE_FOUR:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_three is not None and
+                        roll.die_four is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_THREE_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_three is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_THREE_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_three is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_TWO_THREE_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_two is not None and
+                        roll.die_three is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
             case PlayChoices.KEEP_DICE_ONE_TWO_THREE_FOUR_FIVE:
-                pass
+                return (
+                        roll.die_one is not None and
+                        roll.die_two is not None and
+                        roll.die_three is not None and
+                        roll.die_four is not None and
+                        roll.die_five is not None
+                )
 
     def _roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
