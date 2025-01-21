@@ -84,9 +84,11 @@ class TurnState:
         self.current_score = 0
         self.is_covered = False
 
+
 class GameState:
     def __init__(self):
         pass
+
 
 @dataclass
 class Roll:
@@ -116,9 +118,8 @@ class Roll:
     def dice_five(self) -> Optional[int]:
         return self.data[4]
 
-    def get_value_from_indices(self, indices: List[int]) -> List[Optional[int]]:
+    def get_values_from_indices(self, indices: List[int]) -> List[Optional[int]]:
         return [self.data[i] for i in indices]
-
 
 
 class TenThousandEngine:
@@ -141,7 +142,7 @@ class TenThousandEngine:
 
         self.num_dice_to_roll = 5
         self.turn_state = TurnState()
-        self.current_roll = None
+        self.current_roll: Optional[Roll] = None
 
     def _count_score(self, values_counter: Counter[int]) -> Tuple[int, bool]:
         """
@@ -180,30 +181,55 @@ class TenThousandEngine:
         self.rolls = Roll(rolls)
         return self.rolls
 
+    @staticmethod
+    def is_legal_move(values_counter: Counter) -> bool:
+        """
+        Takes the numbers selected and checks if they are legal to take.
+
+        Args:
+            values_counter: a Counter object mapping the integer face value of the dice to the number
+
+        Returns:
+            A boolean indicating if the dice is legal or not.
+        """
+        for num, count in values_counter.items():
+            if num == 1 and count < 3:
+                return True
+            elif num == 5 and count < 3:
+                return True
+            elif count >= 3:
+                return True
+        return False
+
     def choose(self, choice: int) -> int:
         """
         Takes a player's choice and either applies it to the game if it is legal and returns 0, or
         returns a punishment value if the move is illegal.
 
         Args:
-            choice:
+            choice: and integer representing the player choice. Must be between 0 and (2 ^ number_of_dice) - 1.
 
         Returns:
 
         """
-        values = self.current_roll.get_value_from_indices(PlayChoices.get_indexes_from_play(choice))
+        try:
+            values = self.current_roll.get_values_from_indices(PlayChoices.get_indexes_from_play(play=choice))
+        except IndexError:
+            return self.illegal_move
+
         val_counter = Counter(values)
         # All dice have to be a value
-        if val_counter.get(None):
+        if self.is_legal_move(val_counter):
             return self.illegal_move
 
         match choice:
-            case PlayChoices.PASS:
-                pass
-            case PlayChoices.STOP:
-                pass
+            case PlayChoices.KEEP_DICE_00000: # Not choosing any dice
+                if self.turn_state.is_covered:
+                    pass # increase score
+                else:
+                    pass # wipe dice
             case _:
                 score, is_covered = self._count_score(val_counter)
                 self.turn_state.is_covered = is_covered
                 self.turn_state.current_score += score
-
+                return score
