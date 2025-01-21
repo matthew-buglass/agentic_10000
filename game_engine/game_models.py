@@ -193,13 +193,9 @@ class TenThousandEngine:
             A boolean indicating if the dice is legal or not.
         """
         for num, count in values_counter.items():
-            if num == 1 and count < 3:
-                return True
-            elif num == 5 and count < 3:
-                return True
-            elif count >= 3:
-                return True
-        return False
+            if num not in [1, 5] and count < 3:
+                return False
+        return True
 
     def choose(self, choice: int) -> int:
         """
