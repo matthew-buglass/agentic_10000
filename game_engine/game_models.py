@@ -182,7 +182,7 @@ class TenThousandEngine:
         return self.rolls
 
     @staticmethod
-    def is_legal_move(values_counter: Counter) -> bool:
+    def _is_legal_move(values_counter: Counter) -> bool:
         """
         Takes the numbers selected and checks if they are legal to take.
 
@@ -215,7 +215,7 @@ class TenThousandEngine:
 
         val_counter = Counter(values)
         # All dice have to be a value
-        if self.is_legal_move(val_counter):
+        if self._is_legal_move(val_counter):
             return self.illegal_move
 
         match choice:

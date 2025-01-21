@@ -189,5 +189,93 @@ class TenThousandEngineScoreCounter(unittest.TestCase):
         self.assertEqual(1000, score)
         self.assertFalse(is_covered)
 
+    def test_no_dice_is_legal_move(self):
+        # Setup
+        dice = []
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
+    def test_one_one_is_legal_move(self):
+        # Setup
+        dice = [1]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
+    def test_one_five_is_legal_move(self):
+        # Setup
+        dice = [5]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
+    def test_three_ones_is_legal_move(self):
+        # Setup
+        dice = [1, 1, 1]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
+    def test_three_fives_is_legal_move(self):
+        # Setup
+        dice = [5, 5, 5]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
+    def test_one_three_is_illegal_move(self):
+        # Setup
+        dice = [3]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertFalse(is_legal)
+
+    def test_three_threes_is_legal_move(self):
+        # Setup
+        dice = [3, 3, 3]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
+    def test_five_fours_is_legal_move(self):
+        # Setup
+        dice = [5, 5, 5, 5, 5]
+        dice_counter = Counter(dice)
+
+        # Execute
+        is_legal = self.engine._is_legal_move(dice_counter)
+
+        # Assert
+        self.assertTrue(is_legal)
+
 if __name__ == '__main__':
     unittest.main()
