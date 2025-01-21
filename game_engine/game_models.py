@@ -6,79 +6,77 @@ from typing import List, Optional, Tuple
 
 @dataclass
 class PlayChoices:
-    STOP: int = 0
-    PASS: int = 1
-    KEEP_DICE_ONE: int = 2
-    KEEP_DICE_TWO: int = 3
-    KEEP_DICE_THREE: int = 4
-    KEEP_DICE_FOUR: int = 5
-    KEEP_DICE_FIVE: int = 6
-    KEEP_DICE_ONE_TWO: int = 7
-    KEEP_DICE_ONE_THREE: int = 8
-    KEEP_DICE_ONE_FOUR: int = 9
-    KEEP_DICE_ONE_FIVE: int = 10
-    KEEP_DICE_TWO_THREE: int = 11
-    KEEP_DICE_TWO_FOUR: int = 12
-    KEEP_DICE_TWO_FIVE: int = 13
-    KEEP_DICE_THREE_FOUR: int = 14
-    KEEP_DICE_THREE_FIVE: int = 15
-    KEEP_DICE_FOUR_FIVE: int = 16
-    KEEP_DICE_ONE_TWO_THREE: int = 17
-    KEEP_DICE_ONE_TWO_FOUR: int = 18
-    KEEP_DICE_ONE_TWO_FIVE: int = 19
-    KEEP_DICE_ONE_THREE_FOUR: int = 20
-    KEEP_DICE_ONE_THREE_FIVE: int = 21
-    KEEP_DICE_ONE_FOUR_FIVE: int = 22
-    KEEP_DICE_TWO_THREE_FOUR: int = 23
-    KEEP_DICE_TWO_THREE_FIVE: int = 24
-    KEEP_DICE_TWO_FOUR_FIVE: int = 25
-    KEEP_DICE_THREE_FOUR_FIVE: int = 26
-    KEEP_DICE_ONE_TWO_THREE_FOUR: int = 27
-    KEEP_DICE_ONE_TWO_THREE_FIVE: int = 28
-    KEEP_DICE_ONE_TWO_FOUR_FIVE: int = 29
-    KEEP_DICE_ONE_THREE_FOUR_FIVE: int = 30
-    KEEP_DICE_TWO_THREE_FOUR_FIVE: int = 31
-    KEEP_DICE_ONE_TWO_THREE_FOUR_FIVE: int = 32
+    KEEP_DICE_00000: int = 0
+    KEEP_DICE_00001: int = 1
+    KEEP_DICE_00010: int = 2
+    KEEP_DICE_00011: int = 3
+    KEEP_DICE_00100: int = 4
+    KEEP_DICE_00101: int = 5
+    KEEP_DICE_00110: int = 6
+    KEEP_DICE_00111: int = 7
+    KEEP_DICE_01000: int = 8
+    KEEP_DICE_01001: int = 9
+    KEEP_DICE_01010: int = 10
+    KEEP_DICE_01011: int = 11
+    KEEP_DICE_01100: int = 12
+    KEEP_DICE_01101: int = 13
+    KEEP_DICE_01110: int = 14
+    KEEP_DICE_01111: int = 15
+    KEEP_DICE_10000: int = 16
+    KEEP_DICE_10001: int = 17
+    KEEP_DICE_10010: int = 18
+    KEEP_DICE_10011: int = 19
+    KEEP_DICE_10100: int = 20
+    KEEP_DICE_10101: int = 21
+    KEEP_DICE_10110: int = 22
+    KEEP_DICE_10111: int = 23
+    KEEP_DICE_11000: int = 24
+    KEEP_DICE_11001: int = 25
+    KEEP_DICE_11010: int = 26
+    KEEP_DICE_11011: int = 27
+    KEEP_DICE_11100: int = 28
+    KEEP_DICE_11101: int = 29
+    KEEP_DICE_11110: int = 30
+    KEEP_DICE_11111: int = 31
 
     play_to_indexes = {
         0: [],
-        1: [],
-        2: [0],
-        3: [1],
+        1: [4],
+        2: [3],
+        3: [3, 4],
         4: [2],
-        5: [3],
-        6: [4],
-        7: [0, 1],
-        8: [0, 2],
-        9: [0, 3],
-        10: [0, 4],
-        11: [1, 2],
-        12: [1, 3],
-        13: [1, 4],
-        14: [2, 3],
-        15: [2, 4],
-        16: [3, 4],
-        17: [0, 1, 2],
-        18: [0, 1, 3],
-        19: [0, 1, 4],
-        20: [0, 2, 3],
+        5: [2, 4],
+        6: [2, 3],
+        7: [2, 3, 4],
+        8: [1],
+        9: [1, 4],
+        10: [1, 3],
+        11: [1, 3, 4],
+        12: [1, 2],
+        13: [1, 2, 4],
+        14: [1, 2, 3],
+        15: [1, 2, 3, 4],
+        16: [0],
+        17: [0, 4],
+        18: [0, 3],
+        19: [0, 3, 4],
+        20: [0, 2],
         21: [0, 2, 4],
-        22: [0, 3, 4],
-        23: [1, 2, 3],
-        24: [1, 2, 4],
-        25: [1, 3, 4],
-        26: [2, 3, 4],
-        27: [0, 1, 2, 3],
-        28: [0, 1, 2, 4],
-        29: [0, 1, 3, 4],
-        30: [0, 2, 3, 4],
-        31: [1, 2, 3, 4],
-        32: [0, 1, 2, 3, 4],
+        22: [0, 2, 3],
+        23: [0, 2, 3, 4],
+        24: [0, 1],
+        25: [0, 1, 4],
+        26: [0, 1, 3],
+        27: [0, 1, 3, 4],
+        28: [0, 1, 2],
+        29: [0, 1, 2, 4],
+        30: [0, 1, 2, 3],
+        31: [0, 1, 2, 3, 4],
     }
 
-    @classmethod
-    def get_indexes_from_play(cls, play: int) -> List[int]:
-        return cls.play_to_indexes[play]
+    def get_indexes_from_play(self, play: int) -> List[int]:
+        return self.play_to_indexes[play]
+
 
 class TurnState:
     def __init__(self):

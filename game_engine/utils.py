@@ -1,24 +1,14 @@
-from itertools import combinations
+from itertools import combinations_with_replacement, permutations
 from typing import List, Tuple
 
 
 def get_play_names_and_indexes() -> List[Tuple[str, List[int]]]:
-    numbers = [1, 2, 3, 4, 5]
-    name_mapping = {
-        1: "ONE",
-        2: "TWO",
-        3: "THREE",
-        4: "FOUR",
-        5: "FIVE",
-    }
-
-    plays = [("STOP", []), ("PASS", [])]
-    for i in range(min(numbers), max(numbers) + 1):
-        perms = combinations(numbers, i)
-        for perm in perms:
-            name = f"KEEP_DICE_{'_'.join([name_mapping[num] for num in perm])}"
-            indexes = [i-1 for i in perm]
-            plays.append((name, indexes))
+    plays = []
+    num_dice = 5
+    for i in range(2**num_dice):
+        name = f"KEEP_DICE_{bin(i)[2:].zfill(num_dice)}"
+        indexes = [j for j, indx in enumerate(bin(i)[2:].zfill(num_dice)) if indx == "1"]
+        plays.append((name, indexes))
 
     return plays
 
