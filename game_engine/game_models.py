@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from random import randint as ri
 from typing import List, Optional, Tuple
 
+from agents.agents import Agent
+
 
 @dataclass
 class PlayChoices:
@@ -132,8 +134,9 @@ class TenThousandEngine:
 
     # Punishment values
     illegal_move = -1000
+    failed_to_score = -100
 
-    def __init__(self, players: List):
+    def __init__(self, players: list[Agent]):
         self.players = players
 
         self.scores = {}
@@ -143,8 +146,10 @@ class TenThousandEngine:
         self.num_dice_to_roll = 5
         self.turn_state = TurnState()
         self.current_roll: Optional[Roll] = None
+        self.current_player_index = 0
 
-    def _count_score(self, values_counter: Counter[int]) -> Tuple[int, bool]:
+    @staticmethod
+    def _count_score(values_counter: Counter[int]) -> Tuple[int, bool]:
         """
         Counts the scores associated with the values counter
         Args:
@@ -197,7 +202,7 @@ class TenThousandEngine:
                 return False
         return True
 
-    def choose(self, choice: int) -> int:
+    def choose(self, choice: int) -> (int, bool):
         """
         Takes a player's choice and either applies it to the game if it is legal and returns 0, or
         returns a punishment value if the move is illegal.
@@ -211,21 +216,24 @@ class TenThousandEngine:
         try:
             values = self.current_roll.get_values_from_indices(PlayChoices.get_indexes_from_play(play=choice))
         except IndexError:
-            return self.illegal_move
+            return self.illegal_move, False
 
         val_counter = Counter(values)
         # All dice have to be a value
         if self._is_legal_move(val_counter):
-            return self.illegal_move
+            return self.illegal_move, False
 
         match choice:
             case PlayChoices.KEEP_DICE_00000: # Not choosing any dice
                 if self.turn_state.is_covered:
-                    pass # increase score
+                    self.players[self.current_player_index].adjust_score(self.turn_state.current_score)
+                    self.current_player_index = (self.current_player_index + 1) % len(self.players)
+                    return self.turn_state.current_score, False
                 else:
-                    pass # wipe dice
+                    self.current_player_index = (self.current_player_index + 1) % len(self.players)
+                    return self.failed_to_score, False
             case _:
                 score, is_covered = self._count_score(val_counter)
                 self.turn_state.is_covered = is_covered
                 self.turn_state.current_score += score
-                return score
+                return 0, True
