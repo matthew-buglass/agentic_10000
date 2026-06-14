@@ -1,6 +1,40 @@
 from collections import Counter
-from game_engine.game_models import TenThousandEngine
+from game_engine.game_models import TenThousandEngine, PlayChoices
 
+
+class TestPlayChoices:
+    def test_zero_move_works(self):
+        # Setup
+        play = 0
+        expected_indices = []
+
+        # Execute
+        actual_indices = PlayChoices().get_indexes_from_play(play)
+
+        # Assert
+        assert expected_indices == actual_indices
+
+    def test_middle_move_works(self):
+        # Setup
+        play = 13
+        expected_indices = [1, 2, 4]
+
+        # Execute
+        actual_indices = PlayChoices().get_indexes_from_play(play)
+
+        # Assert
+        assert expected_indices == actual_indices
+
+    def test_max_move_works(self):
+        # Setup
+        play = 31
+        expected_indices = [0, 1, 2, 3, 4]
+
+        # Execute
+        actual_indices = PlayChoices().get_indexes_from_play(play)
+
+        # Assert
+        assert expected_indices == actual_indices
 
 class TestClassTenThousandEngineScoreCounter:
     def setup_method(self):

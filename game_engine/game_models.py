@@ -42,44 +42,8 @@ class PlayChoices:
     KEEP_DICE_11110: int = 30
     KEEP_DICE_11111: int = 31
 
-    play_to_indexes = {
-        0: [],
-        1: [4],
-        2: [3],
-        3: [3, 4],
-        4: [2],
-        5: [2, 4],
-        6: [2, 3],
-        7: [2, 3, 4],
-        8: [1],
-        9: [1, 4],
-        10: [1, 3],
-        11: [1, 3, 4],
-        12: [1, 2],
-        13: [1, 2, 4],
-        14: [1, 2, 3],
-        15: [1, 2, 3, 4],
-        16: [0],
-        17: [0, 4],
-        18: [0, 3],
-        19: [0, 3, 4],
-        20: [0, 2],
-        21: [0, 2, 4],
-        22: [0, 2, 3],
-        23: [0, 2, 3, 4],
-        24: [0, 1],
-        25: [0, 1, 4],
-        26: [0, 1, 3],
-        27: [0, 1, 3, 4],
-        28: [0, 1, 2],
-        29: [0, 1, 2, 4],
-        30: [0, 1, 2, 3],
-        31: [0, 1, 2, 3, 4],
-    }
-
     def get_indexes_from_play(self, play: int) -> List[int]:
-        indicies = [match.start(0) for match in re.finditer("1", f'{play:05b}')]
-        return self.play_to_indexes[play]
+        return [match.start(0) for match in re.finditer("1", f'{play:05b}')]
 
 
 class TurnState:
