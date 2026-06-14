@@ -1,3 +1,4 @@
+import re
 from collections import Counter
 from dataclasses import dataclass
 from random import randint as ri
@@ -77,6 +78,7 @@ class PlayChoices:
     }
 
     def get_indexes_from_play(self, play: int) -> List[int]:
+        indicies = [match.start(0) for match in re.finditer("1", f'{play:05b}')]
         return self.play_to_indexes[play]
 
 
