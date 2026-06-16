@@ -99,7 +99,6 @@ class TenThousandEngine:
     """
     A Game manager that encodes and coordinates the rules and the playing of the game.
     """
-    illegal_move_mapping = {}
     winning_score = 10_000
     num_dice_total = 5
 
