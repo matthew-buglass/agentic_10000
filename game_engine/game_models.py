@@ -3,6 +3,7 @@ from collections import Counter
 from dataclasses import dataclass
 from random import randint as ri
 from typing import List, Optional, Tuple
+from pydantic import BaseModel
 
 from agents.agents import Agent
 
@@ -46,16 +47,15 @@ class PlayChoices:
         return [match.start(0) for match in re.finditer("1", f'{play:05b}')]
 
 
-class TurnState:
-    def __init__(self):
-        self.current_player = None
-        self.current_score = 0
-        self.is_covered = False
+class TurnState(BaseModel):
+    current_player_index: int
+    current_score: int = 0
+    is_covered: bool = False
 
 
-class GameState:
-    def __init__(self):
-        pass
+class GameState(BaseModel):
+    game_scores: list[int]
+    turn_state: TurnState
 
 
 @dataclass
@@ -89,18 +89,19 @@ class Roll:
     def get_values_from_indices(self, indices: List[int]) -> List[Optional[int]]:
         return [self.data[i] for i in indices]
 
+class IllegalMoveException(Exception):
+    """An exception for when a move is illegal"""
+
+class FailedToScoreException(Exception):
+    """An exception for when a user failed to score"""
 
 class TenThousandEngine:
     """
     A Game manager that encodes and coordinates the rules and the playing of the game.
     """
     illegal_move_mapping = {}
-    win_con = 10000
+    winning_score = 10_000
     num_dice_total = 5
-
-    # Punishment values
-    illegal_move = -1000
-    failed_to_score = -100
 
     def __init__(self, players: list[Agent]):
         self.players = players
@@ -170,24 +171,28 @@ class TenThousandEngine:
 
     def choose(self, choice: int) -> (int, bool):
         """
-        Takes a player's choice and either applies it to the game if it is legal and returns 0, or
-        returns a punishment value if the move is illegal.
+        Takes a player's choice and applies it to the game.
 
         Args:
             choice: and integer representing the player choice. Must be between 0 and (2 ^ number_of_dice) - 1.
 
-        Returns:
+        Raises:
+            FailedToScoreException: When a user failed to score on this turn.
+            IllegalMoveException: When a user made an illegal move.
 
+        Returns:
+            A tuple of an integer and a boolean where the integer it the score for the current turn and the boolean
+            is whether the turn is covered.
         """
         try:
             values = self.current_roll.get_values_from_indices(PlayChoices.get_indexes_from_play(play=choice))
         except IndexError:
-            return self.illegal_move, False
+            raise IllegalMoveException()
 
         val_counter = Counter(values)
         # All dice have to be a value
         if self._is_legal_move(val_counter):
-            return self.illegal_move, False
+            raise IllegalMoveException()
 
         match choice:
             case PlayChoices.KEEP_DICE_00000: # Not choosing any dice
@@ -197,7 +202,7 @@ class TenThousandEngine:
                     return self.turn_state.current_score, False
                 else:
                     self.current_player_index = (self.current_player_index + 1) % len(self.players)
-                    return self.failed_to_score, False
+                    raise FailedToScoreException
             case _:
                 score, is_covered = self._count_score(val_counter)
                 self.turn_state.is_covered = is_covered
