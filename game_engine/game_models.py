@@ -110,7 +110,8 @@ class TenThousandEngine:
             self.scores[player] = 0
 
         self.num_dice_to_roll = 5
-        self.turn_state = TurnState()
+        turn_state = TurnState(current_player_index=0)
+        self.game_state = GameState(game_scores=[0 for _ in range(len(players))], turn_state=turn_state)
         self.current_roll: Optional[Roll] = None
         self.current_player_index = 0
 
@@ -195,15 +196,15 @@ class TenThousandEngine:
 
         match choice:
             case PlayChoices.KEEP_DICE_00000: # Not choosing any dice
-                if self.turn_state.is_covered:
+                if self.game_state.turn_state.is_covered:
                     self.players[self.current_player_index].adjust_score(self.turn_state.current_score)
                     self.current_player_index = (self.current_player_index + 1) % len(self.players)
-                    return self.turn_state.current_score, False
+                    return self.game_state.turn_state.current_score, False
                 else:
                     self.current_player_index = (self.current_player_index + 1) % len(self.players)
                     raise FailedToScoreException
             case _:
                 score, is_covered = self._count_score(val_counter)
-                self.turn_state.is_covered = is_covered
-                self.turn_state.current_score += score
+                self.game_state.turn_state.is_covered = is_covered
+                self.game_state.turn_state.current_score += score
                 return 0, True
