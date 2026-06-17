@@ -1,5 +1,4 @@
 from abc import abstractmethod, ABCMeta
-from typing import Any
 
 
 class Agent:

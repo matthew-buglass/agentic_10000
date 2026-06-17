@@ -95,6 +95,55 @@ class IllegalMoveException(Exception):
 class FailedToScoreException(Exception):
     """An exception for when a user failed to score"""
 
+
+def score_selection(selected_numbers: list[int]) -> (int, bool):
+    """
+    Takes a list of integers that represent a valid selection and tallies the score for that selection and determines whether that score is coverd
+
+    Returns:
+        A tuple where the first element is the score for the selection and whether that selection is covered.
+    """
+    # Sort the selection for consistency
+    sorted_selection = selected_numbers.copy()
+    sorted_selection.sort()
+
+    high_straight = [2, 3, 4, 5, 6]
+    low_straight = [1, 2, 3, 4, 5]
+
+    if sorted_selection == high_straight or sorted_selection == low_straight:
+        return 1_000, False
+
+    selection_counter = Counter(sorted_selection)
+    is_covered = False
+    score = 0
+    for num, count in selection_counter.items():
+        # 100 points for each 1, score is covered
+        if num == 1 and count < 3:
+            is_covered = True
+            score += 100 * count
+        # 50 points for each 5, score is covered
+        elif num == 5 and count < 3:
+            is_covered = True
+            score += 50 * count
+        # For sets of 3, 4 or 5.
+        elif count >= 3:
+            # 1000 points for 1's
+            if num == 1:
+                base_score = 1000
+            # face value * 100 for the rest
+            else:
+                base_score = num * 100
+
+            remainder = count % 3
+            # Double the base score for each die in the set oast the third
+            set_score = base_score * 2 ** remainder
+
+            # Adjust the score, sets don't affect coverage
+            score += set_score
+
+    return score, is_covered
+
+
 class TenThousandEngine:
     """
     A Game manager that encodes and coordinates the rules and the playing of the game.
@@ -114,39 +163,6 @@ class TenThousandEngine:
         self.game_state = GameState(game_scores=[0 for _ in range(len(players))], turn_state=turn_state)
         self.current_roll: Optional[Roll] = None
         self.current_player_index = 0
-
-    @staticmethod
-    def _count_score(values_counter: Counter[int]) -> Tuple[int, bool]:
-        """
-        Counts the scores associated with the values counter
-        Args:
-            values_counter: a counter mapping the integer face value of the dice to the number
-                of those types of dice that were kept.
-
-        Returns:
-            The score of the kept dice and whether the score is covered.
-        """
-        is_covered = False
-        score = 0
-        for num, count in values_counter.items():
-            if num == 1 and count < 3:
-                is_covered = True
-                score += 100 * count
-            elif num == 5 and count < 3:
-                is_covered = True
-                score += 50 * count
-            else:
-                three_of_a_kind = count // 3 > 0
-                remainder = count % 3
-                temp_score = 0
-                if three_of_a_kind:
-                    if num == 1:
-                        temp_score += 1000
-                    else:
-                        temp_score += num * 100
-                score += temp_score * (remainder + 1)
-
-        return score, is_covered
 
     def _roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
@@ -194,17 +210,19 @@ class TenThousandEngine:
         if self._is_legal_move(val_counter):
             raise IllegalMoveException()
 
+        current_player_index = self.game_state.turn_state.current_player_index
+
         match choice:
             case PlayChoices.KEEP_DICE_00000: # Not choosing any dice
                 if self.game_state.turn_state.is_covered:
-                    self.players[self.current_player_index].adjust_score(self.turn_state.current_score)
-                    self.current_player_index = (self.current_player_index + 1) % len(self.players)
+                    self.players[current_player_index].adjust_score(self.game_state.turn_state.current_score)
+                    self.game_state.turn_state.current_player_index = (current_player_index + 1) % len(self.players)
                     return self.game_state.turn_state.current_score, False
                 else:
-                    self.current_player_index = (self.current_player_index + 1) % len(self.players)
+                    self.game_state.turn_state.current_player_index = (current_player_index + 1) % len(self.players)
                     raise FailedToScoreException
             case _:
-                score, is_covered = self._count_score(val_counter)
+                score, is_covered = score_selection(values)
                 self.game_state.turn_state.is_covered = is_covered
                 self.game_state.turn_state.current_score += score
                 return 0, True
