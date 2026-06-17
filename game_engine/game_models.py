@@ -95,6 +95,8 @@ class IllegalMoveException(Exception):
 class FailedToScoreException(Exception):
     """An exception for when a user failed to score"""
 
+high_straight = [2, 3, 4, 5, 6]
+low_straight = [1, 2, 3, 4, 5]
 
 def score_selection(selected_numbers: list[int]) -> (int, bool):
     """
@@ -106,9 +108,6 @@ def score_selection(selected_numbers: list[int]) -> (int, bool):
     # Sort the selection for consistency
     sorted_selection = selected_numbers.copy()
     sorted_selection.sort()
-
-    high_straight = [2, 3, 4, 5, 6]
-    low_straight = [1, 2, 3, 4, 5]
 
     if sorted_selection == high_straight or sorted_selection == low_straight:
         return 1_000, False
@@ -143,6 +142,33 @@ def score_selection(selected_numbers: list[int]) -> (int, bool):
 
     return score, is_covered
 
+def is_legal_selection(values: list[int]) -> bool:
+    """
+    Takes the numbers selected and checks if they are legal to take.
+
+    Args:
+        values: a Counter object mapping the integer face value of the dice to the number
+
+    Returns:
+        A boolean indicating if the dice is legal or not.
+    """
+    # Sort the selection for consistency
+    sorted_selection = values.copy()
+    sorted_selection.sort()
+
+    if sorted_selection == high_straight or sorted_selection == low_straight:
+        return True
+
+    values_counter = Counter(sorted_selection)
+    for num, count in values_counter.items():
+        # Not in range
+        if num < 1 or num > 6:
+            return False
+        # Non-covering dice that is not in a set
+        if num not in [1, 5] and count < 3:
+            return False
+    return True
+
 
 class TenThousandEngine:
     """
@@ -169,22 +195,6 @@ class TenThousandEngine:
         self.rolls = Roll(rolls)
         return self.rolls
 
-    @staticmethod
-    def _is_legal_move(values_counter: Counter) -> bool:
-        """
-        Takes the numbers selected and checks if they are legal to take.
-
-        Args:
-            values_counter: a Counter object mapping the integer face value of the dice to the number
-
-        Returns:
-            A boolean indicating if the dice is legal or not.
-        """
-        for num, count in values_counter.items():
-            if num not in [1, 5] and count < 3:
-                return False
-        return True
-
     def choose(self, choice: int) -> (int, bool):
         """
         Takes a player's choice and applies it to the game.
@@ -205,9 +215,8 @@ class TenThousandEngine:
         except IndexError:
             raise IllegalMoveException()
 
-        val_counter = Counter(values)
         # All dice have to be a value
-        if self._is_legal_move(val_counter):
+        if self._is_legal_move(values):
             raise IllegalMoveException()
 
         current_player_index = self.game_state.turn_state.current_player_index

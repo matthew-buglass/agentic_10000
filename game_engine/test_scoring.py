@@ -1,8 +1,8 @@
 from collections import Counter
 
 from agents.agents import Agent
-from game_engine.game_models import TenThousandEngine, PlayChoices, score_selection
-
+from game_engine.game_models import TenThousandEngine, PlayChoices, score_selection, is_legal_selection
+from pytest import mark
 
 class TestAgent(Agent):
 
@@ -123,97 +123,50 @@ class TestScoringFunction:
         assert 2000 == score
         assert not is_covered
 
+class TestSelectionLegality:
+    def test_no_dice_is_legal_move(self):
+        assert is_legal_selection([])
+
+    @mark.parametrize("dice", [[1], [5], [1,1], [5,5], [1,5]])
+    def test_all_selection_covers_are_legal(self, dice):
+        assert is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6]])
+    def test_three_of_a_kind_is_legal(self, dice):
+        assert is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3], [4, 4, 4, 4], [5, 5, 5, 5], [6, 6, 6, 6],])
+    def test_four_of_a_kind_is_legal(self, dice):
+        assert is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [4, 4, 4, 4, 4], [5, 5, 5, 5, 5], [6, 6, 6, 6, 6],])
+    def test_five_of_a_kind_is_legal(self, dice):
+        assert is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]])
+    def test_straights_are_legal(self, dice):
+        assert is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[1, 1, 1, 5], [4, 4, 1, 4, 4]])
+    def test_covered_sets_are_legal(self, dice):
+        assert is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[1, 1, 1, 2], [4, 6, 1, 4, 4], [2], [1, 2, 3, 4], [6, 6, 5, 5]])
+    def test_selecting_non_scoring_dice_is_illegal(self, dice):
+        assert not is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[7], [3, 4, 5, 6, 7], [9, 10326], [1, 1, 1, 9], [8, 8, 8]])
+    def test_numbers_higher_than_6_are_illegal(self, dice):
+        assert not is_legal_selection(dice)
+
+    @mark.parametrize("dice", [[0], [0, 1, 2, 3, 4], [-1, -10326], [1, 1, 1, -6], [0, 0, 0]])
+    def test_numbers_lower_than_1_are_illegal(self, dice):
+        assert not is_legal_selection(dice)
+
+
 class TestClassTenThousandEngineScoreCounter:
     def setup_method(self):
         self.engine = TenThousandEngine(players=[])
-
-    def test_no_dice_is_legal_move(self):
-        # Setup
-        dice = []
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
-
-    def test_one_one_is_legal_move(self):
-        # Setup
-        dice = [1]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
-
-    def test_one_five_is_legal_move(self):
-        # Setup
-        dice = [5]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
-
-    def test_three_ones_is_legal_move(self):
-        # Setup
-        dice = [1, 1, 1]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
-
-    def test_three_fives_is_legal_move(self):
-        # Setup
-        dice = [5, 5, 5]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
-
-    def test_one_three_is_illegal_move(self):
-        # Setup
-        dice = [3]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert not is_legal
-
-    def test_three_threes_is_legal_move(self):
-        # Setup
-        dice = [3, 3, 3]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
-
-    def test_five_fours_is_legal_move(self):
-        # Setup
-        dice = [5, 5, 5, 5, 5]
-        dice_counter = Counter(dice)
-
-        # Execute
-        is_legal = self.engine._is_legal_move(dice_counter)
-
-        # Assert
-        assert is_legal
 
 
 class TestTenThousandEngine:
