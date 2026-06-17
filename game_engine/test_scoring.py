@@ -1,5 +1,3 @@
-from collections import Counter
-
 from agents.agents import Agent
 from game_engine.game_models import TenThousandEngine, PlayChoices, score_selection, is_legal_selection
 from pytest import mark
@@ -9,6 +7,11 @@ class TestAgent(Agent):
     def make_decision(self, agent_score: int, other_agent_scores: list[int], die_rolls: list[int]) -> int:
         pass
 
+
+THREE_OF_A_KINDS = [[i]*3 for i in range(1, 7)]
+FOUR_OF_A_KINDS = [[i]*4 for i in range(1, 7)]
+FIVE_OF_A_KINDS = [[i]*5 for i in range(1, 7)]
+STRAIGHTS = [list(range(1, 6)), list(range(2, 7))]
 
 class TestPlayChoices:
     def test_zero_move_works(self):
@@ -46,10 +49,8 @@ class TestPlayChoices:
 
 
 class TestScoringFunction:
-    def test_no_scoring_dice(self):
-        # Setup
-        dice = [2, 3, 4, 6, 2]
-
+    @mark.parametrize("dice", [[2, 3, 4, 6, 2], [6, 3, 4], [2], [4]])
+    def test_no_scoring_dice(self, dice):
         # Execute
         score, is_covered = score_selection(dice)
 
@@ -57,32 +58,23 @@ class TestScoringFunction:
         assert 0 == score
         assert not is_covered
 
-    def test_scoring_three_sixes_covered_with_five(self):
-        # Setup
-        dice = [6, 5, 6, 2, 6]
-
+    @mark.parametrize("dice,expected_score,expected_is_covered", [
+        ([6, 5, 6, 2, 6], 650, True),
+        ([3, 3, 3, 3, 1], 700, True),
+        ([1, 1, 1, 5], 1050, True),
+        ([5, 5, 1], 200, True),
+        ([4, 5, 4, 4], 450, True)
+    ])
+    def test_mixed_scoring_states(self, dice, expected_score, expected_is_covered):
         # Execute
         score, is_covered = score_selection(dice)
 
         # Assert
-        assert 650 == score
-        assert is_covered
+        assert expected_score == score
+        assert expected_is_covered == is_covered
 
-    def test_scoring_fewer_than_five_dice(self):
-        # Setup
-        dice = [1, 1, 1]
-
-        # Execute
-        score, is_covered = score_selection(dice)
-
-        # Assert
-        assert 1000 == score
-        assert not is_covered
-
-    def test_high_straight(self):
-        # Setup
-        dice = [2, 3, 4, 5, 6]
-
+    @mark.parametrize("dice", STRAIGHTS)
+    def test_straights_worth_1000_uncovered(self, dice):
         # Execute
         score, is_covered = score_selection(dice)
 
@@ -90,37 +82,49 @@ class TestScoringFunction:
         assert 1000 == score
         assert not is_covered
 
-    def test_low_straight(self):
+    @mark.parametrize("dice", THREE_OF_A_KINDS)
+    def test_3_of_a_kind_score_and_are_uncovered(self, dice):
         # Setup
-        dice = [1, 2, 3, 4, 5]
+        if dice[0] == 1:
+            expected_score = 1000
+        else:
+            expected_score = dice[0] * 100
 
         # Execute
         score, is_covered = score_selection(dice)
 
         # Assert
-        assert 1000 == score
+        assert expected_score == score
         assert not is_covered
 
-    def test_4_of_a_kind(self):
+    @mark.parametrize("dice", FOUR_OF_A_KINDS)
+    def test_4_of_a_kind_score_and_are_uncovered(self, dice):
         # Setup
-        dice = [2, 2, 2, 2]
+        if dice[0] == 1:
+            expected_score = 1000 * 2
+        else:
+            expected_score = dice[0] * 100 * 2
 
         # Execute
         score, is_covered = score_selection(dice)
 
         # Assert
-        assert 400 == score
+        assert expected_score == score
         assert not is_covered
 
-    def test_5_of_a_kind(self):
+    @mark.parametrize("dice", FIVE_OF_A_KINDS)
+    def test_5_of_a_kind_score_and_are_uncovered(self, dice):
         # Setup
-        dice = [5, 5, 5, 5, 5]
+        if dice[0] == 1:
+            expected_score = 1000 * 4
+        else:
+            expected_score = dice[0] * 100 * 4
 
         # Execute
         score, is_covered = score_selection(dice)
 
         # Assert
-        assert 2000 == score
+        assert expected_score == score
         assert not is_covered
 
 class TestSelectionLegality:
@@ -131,19 +135,19 @@ class TestSelectionLegality:
     def test_all_selection_covers_are_legal(self, dice):
         assert is_legal_selection(dice)
 
-    @mark.parametrize("dice", [[1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5], [6, 6, 6]])
+    @mark.parametrize("dice", THREE_OF_A_KINDS)
     def test_three_of_a_kind_is_legal(self, dice):
         assert is_legal_selection(dice)
 
-    @mark.parametrize("dice", [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3], [4, 4, 4, 4], [5, 5, 5, 5], [6, 6, 6, 6],])
+    @mark.parametrize("dice", FOUR_OF_A_KINDS)
     def test_four_of_a_kind_is_legal(self, dice):
         assert is_legal_selection(dice)
 
-    @mark.parametrize("dice", [[1, 1, 1, 1, 1], [2, 2, 2, 2, 2], [3, 3, 3, 3, 3], [4, 4, 4, 4, 4], [5, 5, 5, 5, 5], [6, 6, 6, 6, 6],])
+    @mark.parametrize("dice", FIVE_OF_A_KINDS)
     def test_five_of_a_kind_is_legal(self, dice):
         assert is_legal_selection(dice)
 
-    @mark.parametrize("dice", [[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]])
+    @mark.parametrize("dice", STRAIGHTS)
     def test_straights_are_legal(self, dice):
         assert is_legal_selection(dice)
 
