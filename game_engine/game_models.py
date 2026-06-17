@@ -158,6 +158,8 @@ def is_legal_selection(values: list[int]) -> bool:
 
     if sorted_selection == high_straight or sorted_selection == low_straight:
         return True
+    if len(sorted_selection) > 5:
+        return False
 
     values_counter = Counter(sorted_selection)
     for num, count in values_counter.items():

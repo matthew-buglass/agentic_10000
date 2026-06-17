@@ -167,6 +167,10 @@ class TestSelectionLegality:
     def test_numbers_lower_than_1_are_illegal(self, dice):
         assert not is_legal_selection(dice)
 
+    @mark.parametrize("dice", [[1, 2, 3, 4, 5, 6], [3, 3, 3, 3, 3, 3], [1, 1, 1, 5, 5, 5]])
+    def test_more_that_6_dice_are_illegal(self, dice):
+        assert not is_legal_selection(dice)
+
 
 class TestClassTenThousandEngineScoreCounter:
     def setup_method(self):
