@@ -1,7 +1,7 @@
 from collections import Counter
 from dataclasses import dataclass
 from random import randint as ri
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from agents.agents import Agent
 
@@ -12,6 +12,9 @@ class Roll:
         self.data = [None] * 5
         for i, val in enumerate(data):
             self.data[i] = val
+
+    def __str__(self):
+        return str(self.data)
 
     @property
     def dice_one(self) -> int | None:
@@ -45,6 +48,8 @@ class TurnState(BaseModel):
     running_score: int = 0
     is_covered: bool = False
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
 
 class GameState(BaseModel):
     player_map: dict[str, Agent]
@@ -52,12 +57,7 @@ class GameState(BaseModel):
     current_player_index: int = 0
     turn_state: TurnState
 
-    def __init__(self, players: list[Agent], **kwargs):
-        super().__init__(**kwargs)
-        self.players = players
-        self.player_map = {player.id: player for player in players}
-
-        self.turn_state = TurnState(current_player_id=players[self.current_player_index].id)
+    model_config = ConfigDict(arbitrary_types_allowed = True)
 
 
 class IllegalMoveException(Exception):
@@ -158,12 +158,18 @@ class TenThousandEngine:
     num_dice_total = 5
 
     def __init__(self, players: list[Agent]):
-        self.game_state = GameState(players=players)
+        self.game_state = GameState(players=players, player_map={player.id: player for player in players}, turn_state=TurnState(current_player_id=players[0].id))
 
-    def _roll(self) -> Roll:
+    def is_done(self):
+        for player in self.game_state.players:
+            if player.score >= self.winning_score:
+                return True
+        return False
+
+    def roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
-        self.rolls = Roll(rolls)
-        return self.rolls
+        self.game_state.turn_state.current_roll = Roll(rolls)
+        return self.current_roll
 
     @property
     def current_roll(self) -> Roll:
@@ -172,6 +178,10 @@ class TenThousandEngine:
     @property
     def current_player_id(self) -> str:
         return self.game_state.turn_state.current_player_id
+
+    @property
+    def num_dice_to_roll(self) -> int:
+        return self.game_state.turn_state.num_dice_to_roll
 
     def choose(self, player_id: str, indices_to_keep: list[int], end_turn: bool) -> GameState:
         """
