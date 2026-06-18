@@ -1,102 +1,80 @@
-import re
 from collections import Counter
 from dataclasses import dataclass
 from random import randint as ri
-from typing import List, Optional, Tuple
 from pydantic import BaseModel
 
 from agents.agents import Agent
 
-
-@dataclass
-class PlayChoices:
-    KEEP_DICE_00000: int = 0
-    KEEP_DICE_00001: int = 1
-    KEEP_DICE_00010: int = 2
-    KEEP_DICE_00011: int = 3
-    KEEP_DICE_00100: int = 4
-    KEEP_DICE_00101: int = 5
-    KEEP_DICE_00110: int = 6
-    KEEP_DICE_00111: int = 7
-    KEEP_DICE_01000: int = 8
-    KEEP_DICE_01001: int = 9
-    KEEP_DICE_01010: int = 10
-    KEEP_DICE_01011: int = 11
-    KEEP_DICE_01100: int = 12
-    KEEP_DICE_01101: int = 13
-    KEEP_DICE_01110: int = 14
-    KEEP_DICE_01111: int = 15
-    KEEP_DICE_10000: int = 16
-    KEEP_DICE_10001: int = 17
-    KEEP_DICE_10010: int = 18
-    KEEP_DICE_10011: int = 19
-    KEEP_DICE_10100: int = 20
-    KEEP_DICE_10101: int = 21
-    KEEP_DICE_10110: int = 22
-    KEEP_DICE_10111: int = 23
-    KEEP_DICE_11000: int = 24
-    KEEP_DICE_11001: int = 25
-    KEEP_DICE_11010: int = 26
-    KEEP_DICE_11011: int = 27
-    KEEP_DICE_11100: int = 28
-    KEEP_DICE_11101: int = 29
-    KEEP_DICE_11110: int = 30
-    KEEP_DICE_11111: int = 31
-
-    def get_indexes_from_play(self, play: int) -> List[int]:
-        return [match.start(0) for match in re.finditer("1", f'{play:05b}')]
-
-
-class TurnState(BaseModel):
-    current_player_index: int
-    current_score: int = 0
-    is_covered: bool = False
-
-
-class GameState(BaseModel):
-    game_scores: list[int]
-    turn_state: TurnState
-
-
 @dataclass
 class Roll:
-    def __init__(self, data: List[int]):
+    def __init__(self, data: list[int]):
         assert len(data) <= 5, "Maximum of 5 dice allowed."
         self.data = [None] * 5
         for i, val in enumerate(data):
             self.data[i] = val
 
     @property
-    def dice_one(self) -> Optional[int]:
+    def dice_one(self) -> int | None:
         return self.data[0]
 
     @property
-    def dice_two(self) -> Optional[int]:
+    def dice_two(self) -> int | None:
         return self.data[1]
 
     @property
-    def dice_three(self) -> Optional[int]:
+    def dice_three(self) -> int | None:
         return self.data[2]
 
     @property
-    def dice_four(self) -> Optional[int]:
+    def dice_four(self) -> int | None:
         return self.data[3]
 
     @property
-    def dice_five(self) -> Optional[int]:
+    def dice_five(self) -> int | None:
         return self.data[4]
 
-    def get_values_from_indices(self, indices: List[int]) -> List[Optional[int]]:
+    def get_values_from_indices(self, indices: list[int]) -> list[int | None]:
         return [self.data[i] for i in indices]
 
+
+class TurnState(BaseModel):
+    current_player_id: str
+    current_roll: Roll | None = None
+
+    num_dice_to_roll: int = 5
+    running_score: int = 0
+    is_covered: bool = False
+
+
+class GameState(BaseModel):
+    player_map: dict[str, Agent]
+    players: list[Agent]
+    current_player_index: int = 0
+    turn_state: TurnState
+
+    def __init__(self, players: list[Agent], **kwargs):
+        super().__init__(**kwargs)
+        self.players = players
+        self.player_map = {player.id: player for player in players}
+
+        self.turn_state = TurnState(current_player_id=players[self.current_player_index].id)
+
+
 class IllegalMoveException(Exception):
-    """An exception for when a move is illegal"""
+    """Raised when a move is illegal"""
+
 
 class FailedToScoreException(Exception):
-    """An exception for when a user failed to score"""
+    """Raised when a user failed to score"""
 
-high_straight = [2, 3, 4, 5, 6]
-low_straight = [1, 2, 3, 4, 5]
+
+class NotActivePlayerException(Exception):
+    """Raised when the submitting player is not the active player"""
+
+
+HIGH_STRAIGHT = [2, 3, 4, 5, 6]
+LOW_STRAIGHT = [1, 2, 3, 4, 5]
+
 
 def score_selection(selected_numbers: list[int]) -> (int, bool):
     """
@@ -109,7 +87,7 @@ def score_selection(selected_numbers: list[int]) -> (int, bool):
     sorted_selection = selected_numbers.copy()
     sorted_selection.sort()
 
-    if sorted_selection == high_straight or sorted_selection == low_straight:
+    if sorted_selection == HIGH_STRAIGHT or sorted_selection == LOW_STRAIGHT:
         return 1_000, False
 
     selection_counter = Counter(sorted_selection)
@@ -156,7 +134,7 @@ def is_legal_selection(values: list[int]) -> bool:
     sorted_selection = values.copy()
     sorted_selection.sort()
 
-    if sorted_selection == high_straight or sorted_selection == low_straight:
+    if sorted_selection == HIGH_STRAIGHT or sorted_selection == LOW_STRAIGHT:
         return True
     if len(sorted_selection) > 5:
         return False
@@ -180,60 +158,91 @@ class TenThousandEngine:
     num_dice_total = 5
 
     def __init__(self, players: list[Agent]):
-        self.players = players
-
-        self.scores = {}
-        for player in players:
-            self.scores[player] = 0
-
-        self.num_dice_to_roll = 5
-        turn_state = TurnState(current_player_index=0)
-        self.game_state = GameState(game_scores=[0 for _ in range(len(players))], turn_state=turn_state)
-        self.current_roll: Optional[Roll] = None
-        self.current_player_index = 0
+        self.game_state = GameState(players=players)
 
     def _roll(self) -> Roll:
         rolls = [ri(1,6) for _ in range(self.num_dice_to_roll)]
         self.rolls = Roll(rolls)
         return self.rolls
 
-    def choose(self, choice: int) -> (int, bool):
+    @property
+    def current_roll(self) -> Roll:
+        return self.game_state.turn_state.current_roll
+
+    @property
+    def current_player_id(self) -> str:
+        return self.game_state.turn_state.current_player_id
+
+    def choose(self, player_id: str, indicies_to_keep: list[int], end_turn: bool) -> GameState:
         """
         Takes a player's choice and applies it to the game.
 
         Args:
+            player_id: The ID of the player making the move.
             choice: and integer representing the player choice. Must be between 0 and (2 ^ number_of_dice) - 1.
 
         Raises:
             FailedToScoreException: When a user failed to score on this turn.
             IllegalMoveException: When a user made an illegal move.
+            NotActivePlayerException: When a player made a choice when they are not hte active player.
 
         Returns:
             A tuple of an integer and a boolean where the integer it the score for the current turn and the boolean
             is whether the turn is covered.
         """
-        try:
-            values = self.current_roll.get_values_from_indices(PlayChoices.get_indexes_from_play(play=choice))
-        except IndexError:
-            raise IllegalMoveException()
+        if player_id != self.current_player_id:
+            raise NotActivePlayerException()
 
-        # All dice have to be a value
-        if is_legal_selection(values):
-            raise IllegalMoveException()
+        if not indicies_to_keep:
+            # If you don't keep any dice from your roll, it doesn't matter whether you want to end your turn
+            self.end_non_scoring_turn()
+        else:
+            try:
+                values = self.current_roll.get_values_from_indices(indicies_to_keep)
+            except IndexError:
+                raise IllegalMoveException()
 
-        current_player_index = self.game_state.turn_state.current_player_index
+            # All dice have to be a value
+            if is_legal_selection(values):
+                raise IllegalMoveException()
 
-        match choice:
-            case PlayChoices.KEEP_DICE_00000: # Not choosing any dice
-                if self.game_state.turn_state.is_covered:
-                    self.players[current_player_index].adjust_score(self.game_state.turn_state.current_score)
-                    self.game_state.turn_state.current_player_index = (current_player_index + 1) % len(self.players)
-                    return self.game_state.turn_state.current_score, False
-                else:
-                    self.game_state.turn_state.current_player_index = (current_player_index + 1) % len(self.players)
-                    raise FailedToScoreException
-            case _:
+            else:
                 score, is_covered = score_selection(values)
-                self.game_state.turn_state.is_covered = is_covered
-                self.game_state.turn_state.current_score += score
-                return 0, True
+
+                if end_turn and not is_covered:
+                    # You can't score and end your turn if your score isn't covered
+                    raise IllegalMoveException()
+
+                self.update_is_covered(is_covered)
+                self.increment_running_score(score)
+                self.update_available_dice(len(indicies_to_keep))
+
+                if end_turn:
+                    self.update_player_score()
+                    self.advance_to_next_player()
+
+        return self.game_state
+
+    def update_is_covered(self, is_covered: bool):
+        self.game_state.turn_state.is_covered = is_covered
+
+    def increment_running_score(self, score):
+        self.game_state.turn_state.running_score += score
+
+    def update_available_dice(self, dice_kept: int):
+        dice_remaining = self.game_state.turn_state.num_dice_to_roll - dice_kept
+        # if we've kept all the dice, we get a new 5
+        if dice_remaining == 0:
+            dice_remaining = 5
+
+        self.game_state.turn_state.num_dice_to_roll = dice_remaining
+
+    def update_player_score(self):
+        current_player = self.game_state.player_map[self.current_player_id]
+        current_player.adjust_score(self.game_state.turn_state.running_score)
+
+    def advance_to_next_player(self):
+        self.game_state.current_player_index = (self.game_state.current_player_index + 1) % len(self.game_state.players)
+        self.game_state.turn_state.current_player_id = self.game_state.players[self.game_state.current_player_index].id
+
+

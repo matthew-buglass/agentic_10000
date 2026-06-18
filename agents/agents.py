@@ -1,11 +1,13 @@
+import datetime
 from abc import abstractmethod, ABCMeta
-
+from datetime import datetime
 
 class Agent:
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, agent_id: str | None = None):
         self.score = 0
+        self.id = agent_id or str(hash(datetime.now(datetime.UTC)))
 
     def adjust_score(self, score_diff):
         self.score += score_diff
