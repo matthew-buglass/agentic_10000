@@ -2,6 +2,7 @@ from collections import Counter
 from dataclasses import dataclass
 from random import randint as ri
 from pydantic import BaseModel, ConfigDict
+from tabulate import tabulate
 
 from agents.agents import Agent
 
@@ -58,6 +59,20 @@ class GameState(BaseModel):
     turn_state: TurnState
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
+
+    def terminal_repr(self) -> str:
+        terminal_repr = "------------- Game Scores ------------\n"
+
+        terminal_repr += tabulate([[player.score for player in self.players]],
+                                  headers=[player.id for player in self.players])
+        terminal_repr += "\n\n"
+
+        terminal_repr += "------------- Turn State ------------\n"
+        terminal_repr += f"Current Player: {self.turn_state.current_player_id}\n"
+        terminal_repr += f"Running Score: {self.turn_state.running_score}\n"
+        terminal_repr += f"Is Covered: {self.turn_state.is_covered}\n"
+
+        return terminal_repr
 
 
 class IllegalMoveException(Exception):
@@ -214,7 +229,7 @@ class TenThousandEngine:
                 raise IllegalMoveException()
 
             # All dice have to be a value
-            if is_legal_selection(values):
+            if not is_legal_selection(values):
                 raise IllegalMoveException()
 
             else:
