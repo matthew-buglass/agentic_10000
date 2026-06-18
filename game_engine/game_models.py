@@ -218,7 +218,7 @@ class TenThousandEngine:
             raise IllegalMoveException()
 
         # All dice have to be a value
-        if self._is_legal_move(values):
+        if is_legal_selection(values):
             raise IllegalMoveException()
 
         current_player_index = self.game_state.turn_state.current_player_index
