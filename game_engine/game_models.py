@@ -173,16 +173,16 @@ class TenThousandEngine:
     def current_player_id(self) -> str:
         return self.game_state.turn_state.current_player_id
 
-    def choose(self, player_id: str, indicies_to_keep: list[int], end_turn: bool) -> GameState:
+    def choose(self, player_id: str, indices_to_keep: list[int], end_turn: bool) -> GameState:
         """
         Takes a player's choice and applies it to the game.
 
         Args:
+            end_turn: Whether the player wants to end their turn
+            indices_to_keep: A list of dice indices to keep from the roll
             player_id: The ID of the player making the move.
-            choice: and integer representing the player choice. Must be between 0 and (2 ^ number_of_dice) - 1.
 
         Raises:
-            FailedToScoreException: When a user failed to score on this turn.
             IllegalMoveException: When a user made an illegal move.
             NotActivePlayerException: When a player made a choice when they are not hte active player.
 
@@ -193,12 +193,13 @@ class TenThousandEngine:
         if player_id != self.current_player_id:
             raise NotActivePlayerException()
 
-        if not indicies_to_keep:
+        if not indices_to_keep:
             # If you don't keep any dice from your roll, it doesn't matter whether you want to end your turn
-            self.end_non_scoring_turn()
+            self.reset_turn_to_default()
+            self.advance_to_next_player()
         else:
             try:
-                values = self.current_roll.get_values_from_indices(indicies_to_keep)
+                values = self.current_roll.get_values_from_indices(indices_to_keep)
             except IndexError:
                 raise IllegalMoveException()
 
@@ -215,7 +216,7 @@ class TenThousandEngine:
 
                 self.update_is_covered(is_covered)
                 self.increment_running_score(score)
-                self.update_available_dice(len(indicies_to_keep))
+                self.update_available_dice(len(indices_to_keep))
 
                 if end_turn:
                     self.update_player_score()
@@ -244,5 +245,10 @@ class TenThousandEngine:
     def advance_to_next_player(self):
         self.game_state.current_player_index = (self.game_state.current_player_index + 1) % len(self.game_state.players)
         self.game_state.turn_state.current_player_id = self.game_state.players[self.game_state.current_player_index].id
+
+    def reset_turn_to_default(self):
+        self.game_state.turn_state.num_dice_to_roll = 5
+        self.game_state.turn_state.running_score = 0
+        self.game_state.turn_state.is_covered = False
 
 
