@@ -1,5 +1,6 @@
 from agents.agents import HumanAgent
-from game_engine.game_models import TenThousandEngine
+from game_engine.game_models import TenThousandEngine, IllegalMoveException, NotActivePlayerException, \
+    FailedToScoreException
 from tabulate import tabulate
 
 
@@ -26,7 +27,15 @@ def main_loop(num_players: int):
 
         indices = [int(die)-1 for die in indices.split()]
 
-        game_state = ten_thousand_engine.choose(current_player_id, indices, end_turn)
+        try:
+            game_state = ten_thousand_engine.choose(current_player_id, indices, end_turn)
+        except IllegalMoveException:
+            print("You cannot make that move.")
+        except NotActivePlayerException:
+            print("You are not the active player.")
+        except FailedToScoreException:
+            print("You must score at least 500 points to get on the board.")
+
 
 if __name__ == '__main__':
-    main_loop(1)
+    main_loop(2)

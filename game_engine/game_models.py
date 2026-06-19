@@ -198,6 +198,13 @@ class TenThousandEngine:
     def num_dice_to_roll(self) -> int:
         return self.game_state.turn_state.num_dice_to_roll
 
+    @property
+    def running_score(self) -> int:
+        return self.game_state.turn_state.running_score
+
+    def get_player_score(self, player_id: str) -> int:
+        return self.game_state.player_map[player_id].score
+
     def choose(self, player_id: str, indices_to_keep: list[int], end_turn: bool) -> GameState:
         """
         Takes a player's choice and applies it to the game.
@@ -210,6 +217,7 @@ class TenThousandEngine:
         Raises:
             IllegalMoveException: When a user made an illegal move.
             NotActivePlayerException: When a player made a choice when they are not hte active player.
+            FailedToScoreException: When a player fails to score enough points to get on the board
 
         Returns:
             A tuple of an integer and a boolean where the integer it the score for the current turn and the boolean
@@ -223,6 +231,8 @@ class TenThousandEngine:
             self.reset_turn_to_default()
             self.advance_to_next_player()
         else:
+            # Whenever a selection is made, we have to clear the previous "is-covered"
+            self.game_state.turn_state.is_covered = False
             try:
                 values = self.current_roll.get_values_from_indices(indices_to_keep)
             except IndexError:
@@ -238,6 +248,10 @@ class TenThousandEngine:
                 if end_turn and not is_covered:
                     # You can't score and end your turn if your score isn't covered
                     raise IllegalMoveException()
+
+                if end_turn and self.get_player_score(player_id) == 0 and self.running_score < 500:
+                    # You must score at least 500 points to get on the board
+                    raise FailedToScoreException()
 
                 self.update_is_covered(is_covered)
                 self.increment_running_score(score)
