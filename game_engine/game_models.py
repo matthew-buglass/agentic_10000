@@ -205,7 +205,18 @@ class TenThousandEngine:
     def get_player_score(self, player_id: str) -> int:
         return self.game_state.player_map[player_id].score
 
-    def choose(self, player_id: str, indices_to_keep: list[int], end_turn: bool) -> GameState:
+    def end_turn(self):
+        if (
+                not self.game_state.turn_state.is_covered or
+                (self.get_player_score(self.current_player_id) == 0 and self.running_score < 500)
+        ):
+            self.reset_turn_to_default()
+        else:
+            self.update_player_score()
+
+        self.advance_to_next_player()
+
+    def choose(self, player_id: str, indices_to_keep: list[int]) -> GameState:
         """
         Takes a player's choice and applies it to the game.
 
@@ -227,9 +238,8 @@ class TenThousandEngine:
             raise NotActivePlayerException()
 
         if not indices_to_keep:
-            # If you don't keep any dice from your roll, it doesn't matter whether you want to end your turn
-            self.reset_turn_to_default()
-            self.advance_to_next_player()
+            # No action, return game state
+            return self.game_state
         else:
             # Whenever a selection is made, we have to clear the previous "is-covered"
             self.game_state.turn_state.is_covered = False
@@ -244,22 +254,9 @@ class TenThousandEngine:
 
             else:
                 score, is_covered = score_selection(values)
-
-                if end_turn and not is_covered:
-                    # You can't score and end your turn if your score isn't covered
-                    raise IllegalMoveException()
-
-                if end_turn and self.get_player_score(player_id) == 0 and self.running_score < 500:
-                    # You must score at least 500 points to get on the board
-                    raise FailedToScoreException()
-
                 self.update_is_covered(is_covered)
                 self.increment_running_score(score)
                 self.update_available_dice(len(indices_to_keep))
-
-                if end_turn:
-                    self.update_player_score()
-                    self.advance_to_next_player()
 
         return self.game_state
 

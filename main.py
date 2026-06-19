@@ -14,8 +14,6 @@ def main_loop(num_players: int):
     die_headers = [str(val) for val in range(1, 6)]
 
     while not ten_thousand_engine.is_done():
-        print(game_state.terminal_repr())
-
         roll = ten_thousand_engine.roll()
         current_player_id = ten_thousand_engine.current_player_id
 
@@ -23,18 +21,20 @@ def main_loop(num_players: int):
         print("Roll:")
         print(tabulate([roll.data], headers=die_headers))
         indices = input("Which dice would you like to keep? (separate with spaces) ")
-        end_turn = input("Would you like to end your turn? (y/n) ").lower() == "y"
-
-        indices = [int(die)-1 for die in indices.split()]
-
+        indices = [int(die) - 1 for die in indices.split()]
         try:
-            game_state = ten_thousand_engine.choose(current_player_id, indices, end_turn)
+            game_state = ten_thousand_engine.choose(current_player_id, indices)
         except IllegalMoveException:
             print("You cannot make that move.")
         except NotActivePlayerException:
             print("You are not the active player.")
         except FailedToScoreException:
             print("You must score at least 500 points to get on the board.")
+
+        print(game_state.terminal_repr())
+        end_turn = input("Would you like to end your turn? (y/n) ").lower() == "y"
+        if end_turn:
+            ten_thousand_engine.end_turn()
 
 
 if __name__ == '__main__':
